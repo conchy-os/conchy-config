@@ -54,7 +54,7 @@ impl Default for SessionConfig {
                 SupervisedService {
                     name: "conchy-shell".to_string(),
                     command: "conchy-shell".to_string(),
-                    args: Vec::new(),
+                    args: vec!["daemon".to_string()],
                     restart: "always".to_string(),
                     wait_for_wayland: true,
                 },
@@ -105,6 +105,7 @@ service "conchy-config" {
 
 service "conchy-shell" {
     command "conchy-shell"
+    args "daemon"
     restart "always"
     wait-for-wayland true
 }
