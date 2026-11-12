@@ -41,14 +41,14 @@ conchy-config init
 conchy-config get wm layout.gaps
 # 16
 
-conchy-config get shell panel.height
+conchy-config get shell bar.size
 # 32
 ```
 
 ### Изменение параметров (с мгновенным уведомлением через D-Bus)
 ```bash
 conchy-config set wm layout.gaps 24
-conchy-config set shell panel.theme "light"
+conchy-config set shell bar.position "bottom"
 ```
 
 ### Просмотр всех параметров канала

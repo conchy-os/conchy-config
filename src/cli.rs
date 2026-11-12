@@ -31,7 +31,7 @@ pub enum Commands {
     Get {
         /// Channel name (e.g. "wm", "session", "shell")
         channel: String,
-        /// Dot-path to property (e.g. "layout.gaps", "panel.height")
+        /// Dot-path to property (e.g. "layout.gaps", "bar.size")
         key: String,
     },
 
@@ -39,7 +39,7 @@ pub enum Commands {
     Set {
         /// Channel name (e.g. "wm", "session", "shell")
         channel: String,
-        /// Dot-path to property (e.g. "layout.gaps", "panel.height")
+        /// Dot-path to property (e.g. "layout.gaps", "bar.size")
         key: String,
         /// New value (automatically parsed as bool, int, float, or string)
         value: String,

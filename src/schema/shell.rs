@@ -1,36 +1,17 @@
 pub fn default_shell_kdl() -> &'static str {
     r#"// ==============================================================================
 // Conchy OS - Desktop Shell Configuration
-// Location: ~/.config/conchy/shell.kdl or /etc/conchy/shell.kdl
+// Location: ~/.config/conchy/shell.kdl
+//
+// The shell's settings window writes this file one node at a time, so what you
+// write here, comments included, stays as you wrote it. Anything left out takes
+// its default. The full spelling is in conchy-shell/docs/CONFIG_SPEC.md.
 // ==============================================================================
 
-panel {
-    position "top"
-    height 32
-    opacity 0.95
-    font "Inter 10"
-
-    // Theme: dark, light, or auto
-    theme "dark"
-
-    // Enabled widgets from left to right
-    left {
-        widget "workspaces"
-        widget "window-title"
-    }
-
-    center {
-        widget "clock" {
-            format "%a %d %b %H:%M"
-        }
-    }
-
-    right {
-        widget "tray"
-        widget "volume"
-        widget "battery"
-        widget "power-menu"
-    }
+bar {
+    position "top"      // "top", "bottom", "left" or "right"
+    style "floating"
+    size 32.0
 }
 "#
 }
