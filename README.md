@@ -16,6 +16,7 @@
    - `~/.config/conchy/session.kdl` — параметры сессии, автозапуск, службы супервизора.
    - `~/.config/conchy/wm.kdl` — композитор, раскладка, жесты, отступы, хоткеи.
    - `~/.config/conchy/shell.kdl` — высота и положение панели, виджеты, темы.
+   - `~/.config/conchy/files.kdl` — файловый менеджер conchy-files: показ скрытых файлов, сортировка, окно, терминал, тема иконок.
 2. **D-Bus шина реактивности (`org.conchy.Config`)**:
    - Методы: `Get(channel, key)`, `Set(channel, key, value)`, `List(channel)`.
    - Сигналы: `PropertyChanged(channel, key, value)` для моментального обновления `conchy-shell` и `conchy-wm` без перезапуска.
