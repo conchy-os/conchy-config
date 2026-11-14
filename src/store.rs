@@ -9,7 +9,7 @@ use std::time::Instant;
 use tracing::{debug, info};
 
 use crate::ast;
-use crate::schema::{default_session_kdl, default_shell_kdl, default_wm_kdl};
+use crate::schema::{default_files_kdl, default_session_kdl, default_shell_kdl, default_wm_kdl};
 
 #[derive(Clone)]
 pub struct ConfigStore {
@@ -20,15 +20,7 @@ pub struct ConfigStore {
 
 impl ConfigStore {
     pub fn new(custom_dir: Option<PathBuf>) -> Result<Self> {
-        let base_dir = if let Some(dir) = custom_dir {
-            dir
-        } else if let Ok(xdg) = env::var("XDG_CONFIG_HOME") {
-            PathBuf::from(xdg).join("conchy")
-        } else if let Ok(home) = env::var("HOME") {
-            PathBuf::from(home).join(".config").join("conchy")
-        } else {
-            PathBuf::from("/etc/conchy")
-        };
+        let base_dir = custom_dir.unwrap_or_else(default_base_dir);
 
         if !base_dir.exists() {
             fs::create_dir_all(&base_dir)
@@ -42,6 +34,30 @@ impl ConfigStore {
 
         store.ensure_defaults()?;
         Ok(store)
+    }
+
+    /// Открывает каталог настроек, ничего не создавая.
+    ///
+    /// Для программ, которым нужен только свой канал: `new` записывает файлы по
+    /// умолчанию для всех каналов, а приложение не должно создавать чужие конфиги.
+    pub fn open(custom_dir: Option<PathBuf>) -> Self {
+        Self {
+            base_dir: custom_dir.unwrap_or_else(default_base_dir),
+            recent_writes: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Записывает файл канала по умолчанию, если его ещё нет. Возвращает `true`, если создан.
+    pub fn ensure_channel(&self, channel: &str, content: &str) -> Result<bool> {
+        let path = self.channel_path(channel);
+        if path.exists() {
+            return Ok(false);
+        }
+        fs::create_dir_all(&self.base_dir)
+            .with_context(|| format!("Failed to create config directory at {:?}", self.base_dir))?;
+        fs::write(&path, content).with_context(|| format!("Failed to write default config to {:?}", path))?;
+        info!("Creating default configuration: {:?}", path);
+        Ok(true)
     }
 
     pub fn base_dir(&self) -> &Path {
@@ -59,6 +75,7 @@ impl ConfigStore {
             ("session", default_session_kdl()),
             ("wm", default_wm_kdl()),
             ("shell", default_shell_kdl()),
+            ("files", default_files_kdl()),
         ];
 
         for (channel, content) in defaults {
@@ -99,6 +116,9 @@ impl ConfigStore {
             let mut writes = self.recent_writes.lock().unwrap();
             writes.insert(channel.to_string(), Instant::now());
         }
+
+        fs::create_dir_all(&self.base_dir)
+            .with_context(|| format!("Failed to create config directory at {:?}", self.base_dir))?;
 
         // Write to temporary file first in the same directory, then rename (atomic)
         let temp_path = self.base_dir.join(format!(".{}.tmp", channel));
@@ -145,6 +165,17 @@ impl ConfigStore {
     }
 }
 
+/// `$XDG_CONFIG_HOME/conchy`, иначе `~/.config/conchy`, иначе `/etc/conchy`.
+fn default_base_dir() -> PathBuf {
+    if let Ok(xdg) = env::var("XDG_CONFIG_HOME") {
+        PathBuf::from(xdg).join("conchy")
+    } else if let Ok(home) = env::var("HOME") {
+        PathBuf::from(home).join(".config").join("conchy")
+    } else {
+        PathBuf::from("/etc/conchy")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,6 +190,7 @@ mod tests {
         assert!(store.channel_path("session").exists());
         assert!(store.channel_path("wm").exists());
         assert!(store.channel_path("shell").exists());
+        assert!(store.channel_path("files").exists());
 
         // Read default property
         let val = store.get("session", "session.socket-wait-timeout").unwrap();
@@ -172,5 +204,23 @@ mod tests {
         // Check file on disk
         let raw = fs::read_to_string(store.channel_path("session")).unwrap();
         assert!(raw.contains("25"));
+    }
+
+    #[test]
+    fn open_creates_only_requested_channel() {
+        let tmp = tempdir().unwrap();
+        let dir = tmp.path().join("conchy");
+        let store = ConfigStore::open(Some(dir.clone()));
+        assert!(!dir.exists(), "open ничего не создаёт");
+
+        assert!(store.ensure_channel("files", default_files_kdl()).unwrap());
+        assert!(!store.ensure_channel("files", "other").unwrap(), "существующий файл не трогаем");
+        assert!(store.channel_path("files").exists());
+        assert!(!store.channel_path("session").exists(), "чужие каналы не создаются");
+
+        store.set("files", "view.show-hidden", "true").unwrap();
+        assert_eq!(store.get("files", "view.show-hidden").unwrap(), Some("true".into()));
+        let raw = fs::read_to_string(store.channel_path("files")).unwrap();
+        assert!(raw.contains("// Ctrl+H"), "комментарии пользователя сохраняются");
     }
 }

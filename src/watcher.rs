@@ -29,7 +29,7 @@ impl FileWatcher {
 
     /// Initializes in-memory snapshot of all existing channels
     pub async fn initialize_snapshot(&self) {
-        let channels = ["session", "wm", "shell"];
+        let channels = ["session", "wm", "shell", "files"];
         let mut cache = self.cache.lock().await;
 
         for ch in channels {
