@@ -57,6 +57,14 @@ pub struct FilesConfig {
     /// Тема иконок. `None` — как у GTK-программ (`gtk-icon-theme-name`).
     pub icon_theme: Option<String>,
     pub font_size: f32,
+    /// Нижняя панель (анализ места, свойства файла) открыта.
+    pub panel_visible: bool,
+    pub panel_height: u32,
+    /// Хранить результаты анализа места на диске между запусками.
+    pub cache_enabled: bool,
+    pub cache_max_mb: u32,
+    /// Записи, которые столько дней не открывали, удаляются.
+    pub cache_max_age_days: u32,
 }
 
 impl Default for FilesConfig {
@@ -73,6 +81,11 @@ impl Default for FilesConfig {
             terminal: None,
             icon_theme: None,
             font_size: 13.0,
+            panel_visible: false,
+            panel_height: 300,
+            cache_enabled: true,
+            cache_max_mb: 100,
+            cache_max_age_days: 30,
         }
     }
 }
@@ -105,6 +118,22 @@ terminal {
 theme {
     icon-theme ""            // empty: same as GTK apps (gtk-icon-theme-name)
     font-size 13
+}
+
+// Bottom panel: disk usage map for folders and disks, properties and preview for files
+panel {
+    visible false            // Ctrl+I; conchy-files saves it here
+    height 300               // drag the panel edge; saved here
+}
+
+// Disk usage results kept between runs (~/.cache/conchy-files): the map shows
+// instantly and is re-checked in the background. Entries for deleted folders,
+// entries not opened for max-age-days and everything over max-size-mb are removed;
+// "enabled false" deletes the cache.
+cache {
+    enabled true
+    max-size-mb 100
+    max-age-days 30
 }
 "#
 }
@@ -153,6 +182,25 @@ pub fn parse_files_config(doc: &KdlDocument) -> Result<FilesConfig> {
         c.icon_theme = arg_str(t, "icon-theme").filter(|s| !s.trim().is_empty());
         if let Some(n) = arg_num(t, "font-size").filter(|n| (8.0..=32.0).contains(n)) {
             c.font_size = n as f32;
+        }
+    }
+    if let Some(p) = block("panel") {
+        if let Some(b) = arg_bool(p, "visible") {
+            c.panel_visible = b;
+        }
+        if let Some(n) = arg_num(p, "height").filter(|n| (120.0..=2000.0).contains(n)) {
+            c.panel_height = n as u32;
+        }
+    }
+    if let Some(k) = block("cache") {
+        if let Some(b) = arg_bool(k, "enabled") {
+            c.cache_enabled = b;
+        }
+        if let Some(n) = arg_num(k, "max-size-mb").filter(|n| (1.0..=100_000.0).contains(n)) {
+            c.cache_max_mb = n as u32;
+        }
+        if let Some(n) = arg_num(k, "max-age-days").filter(|n| (1.0..=3650.0).contains(n)) {
+            c.cache_max_age_days = n as u32;
         }
     }
     Ok(c)
@@ -211,6 +259,15 @@ mod tests {
                 icon-theme "Papirus"
                 font-size 14.5
             }
+            panel {
+                visible true
+                height 40
+            }
+            cache {
+                enabled false
+                max-size-mb 50
+                max-age-days 7
+            }
         "#
         .parse()
         .unwrap();
@@ -225,5 +282,10 @@ mod tests {
         assert_eq!(c.terminal.as_deref(), Some("foot"));
         assert_eq!(c.icon_theme.as_deref(), Some("Papirus"));
         assert_eq!(c.font_size, 14.5);
+        assert!(c.panel_visible);
+        assert_eq!(c.panel_height, 300, "слишком низкая панель — значение по умолчанию");
+        assert!(!c.cache_enabled);
+        assert_eq!(c.cache_max_mb, 50);
+        assert_eq!(c.cache_max_age_days, 7);
     }
 }
