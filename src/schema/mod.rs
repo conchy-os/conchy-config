@@ -1,3 +1,4 @@
+pub mod appearance;
 pub mod files;
 pub mod session;
 pub mod shell;

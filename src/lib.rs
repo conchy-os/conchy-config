@@ -9,6 +9,7 @@ pub mod watcher;
 pub use ast::{get_value, list_values, set_value};
 pub use bus::{ConfigClient, ConfigProxy, ConfigServer, DBUS_OBJECT_PATH, DBUS_SERVICE_NAME};
 pub use daemon::Daemon;
+pub use schema::appearance::{appearance_from_theme_kdl, Appearance, ColorScheme};
 pub use schema::files::{parse_files_config, FilesConfig};
 pub use schema::session::{parse_session_config, SessionConfig, SupervisedService};
 pub use store::ConfigStore;
