@@ -55,7 +55,8 @@ impl ConfigStore {
         }
         fs::create_dir_all(&self.base_dir)
             .with_context(|| format!("Failed to create config directory at {:?}", self.base_dir))?;
-        fs::write(&path, content).with_context(|| format!("Failed to write default config to {:?}", path))?;
+        fs::write(&path, content)
+            .with_context(|| format!("Failed to write default config to {:?}", path))?;
         info!("Creating default configuration: {:?}", path);
         Ok(true)
     }
@@ -124,8 +125,9 @@ impl ConfigStore {
         let temp_path = self.base_dir.join(format!(".{}.tmp", channel));
         fs::write(&temp_path, content)
             .with_context(|| format!("Failed to write temp file {:?}", temp_path))?;
-        fs::rename(&temp_path, &path)
-            .with_context(|| format!("Failed to atomically rename {:?} to {:?}", temp_path, path))?;
+        fs::rename(&temp_path, &path).with_context(|| {
+            format!("Failed to atomically rename {:?} to {:?}", temp_path, path)
+        })?;
 
         debug!("Saved updated configuration for channel '{}'", channel);
         Ok(())
@@ -197,7 +199,9 @@ mod tests {
         assert_eq!(val, Some("10".to_string()));
 
         // Mutate property
-        store.set("session", "session.socket-wait-timeout", "25").unwrap();
+        store
+            .set("session", "session.socket-wait-timeout", "25")
+            .unwrap();
         let updated = store.get("session", "session.socket-wait-timeout").unwrap();
         assert_eq!(updated, Some("25".to_string()));
 
@@ -214,13 +218,25 @@ mod tests {
         assert!(!dir.exists(), "open ничего не создаёт");
 
         assert!(store.ensure_channel("files", default_files_kdl()).unwrap());
-        assert!(!store.ensure_channel("files", "other").unwrap(), "существующий файл не трогаем");
+        assert!(
+            !store.ensure_channel("files", "other").unwrap(),
+            "существующий файл не трогаем"
+        );
         assert!(store.channel_path("files").exists());
-        assert!(!store.channel_path("session").exists(), "чужие каналы не создаются");
+        assert!(
+            !store.channel_path("session").exists(),
+            "чужие каналы не создаются"
+        );
 
         store.set("files", "view.show-hidden", "true").unwrap();
-        assert_eq!(store.get("files", "view.show-hidden").unwrap(), Some("true".into()));
+        assert_eq!(
+            store.get("files", "view.show-hidden").unwrap(),
+            Some("true".into())
+        );
         let raw = fs::read_to_string(store.channel_path("files")).unwrap();
-        assert!(raw.contains("// Ctrl+H"), "комментарии пользователя сохраняются");
+        assert!(
+            raw.contains("// Ctrl+H"),
+            "комментарии пользователя сохраняются"
+        );
     }
 }

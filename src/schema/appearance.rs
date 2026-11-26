@@ -113,7 +113,11 @@ pub fn appearance_from_theme_kdl(
         .and_then(|s| parse_color(&s))
         .map(hsl_lightness)
     {
-        out.color_scheme = if l < 0.5 { ColorScheme::Dark } else { ColorScheme::Light };
+        out.color_scheme = if l < 0.5 {
+            ColorScheme::Dark
+        } else {
+            ColorScheme::Light
+        };
     }
 
     // Акцент: colors.accent → base16.base0d.
@@ -194,7 +198,10 @@ fn parse_hex(h: &str) -> Option<[f64; 4]> {
     if !h.chars().all(|c| c.is_ascii_hexdigit()) {
         return None;
     }
-    let digits: Vec<u8> = h.bytes().map(|b| (b as char).to_digit(16).unwrap() as u8).collect();
+    let digits: Vec<u8> = h
+        .bytes()
+        .map(|b| (b as char).to_digit(16).unwrap() as u8)
+        .collect();
     let (r, g, b, a) = match digits.len() {
         3 | 4 => {
             let d = |i: usize| digits[i] * 17;
@@ -288,7 +295,11 @@ fn parse_oklch(t: &[String]) -> Option<[f64; 4]> {
     ];
     let enc = |v: f64| {
         let v = v.clamp(0.0, 1.0);
-        if v <= 0.003_130_8 { 12.92 * v } else { 1.055 * v.powf(1.0 / 2.4) - 0.055 }
+        if v <= 0.003_130_8 {
+            12.92 * v
+        } else {
+            1.055 * v.powf(1.0 / 2.4) - 0.055
+        }
     };
     Some([enc(lin[0]), enc(lin[1]), enc(lin[2]), a.clamp(0.0, 1.0)])
 }

@@ -164,7 +164,10 @@ layout {
 "#;
         let doc: KdlDocument = input.parse().unwrap();
 
-        assert_eq!(get_value(&doc, "socket-wait-timeout"), Some("10".to_string()));
+        assert_eq!(
+            get_value(&doc, "socket-wait-timeout"),
+            Some("10".to_string())
+        );
         assert_eq!(get_value(&doc, "autostart"), Some("true".to_string()));
         assert_eq!(get_value(&doc, "layout.gaps"), Some("16".to_string()));
         assert_eq!(
@@ -200,7 +203,10 @@ layout {
         let mut doc: KdlDocument = input.parse().unwrap();
         set_value(&mut doc, "appearance.theme", "dark").unwrap();
 
-        assert_eq!(get_value(&doc, "appearance.theme"), Some("dark".to_string()));
+        assert_eq!(
+            get_value(&doc, "appearance.theme"),
+            Some("dark".to_string())
+        );
         let rendered = doc.to_string();
         assert!(rendered.contains("appearance"));
         assert!(rendered.contains("dark"));
@@ -219,8 +225,12 @@ layout {
         let doc: KdlDocument = input.parse().unwrap();
         let list = list_values(&doc);
 
-        assert!(list.iter().any(|(k, v)| k == "socket-wait-timeout" && v == "10"));
+        assert!(list
+            .iter()
+            .any(|(k, v)| k == "socket-wait-timeout" && v == "10"));
         assert!(list.iter().any(|(k, v)| k == "layout.gaps" && v == "16"));
-        assert!(list.iter().any(|(k, v)| k == "layout.border" && v == "solid"));
+        assert!(list
+            .iter()
+            .any(|(k, v)| k == "layout.border" && v == "solid"));
     }
 }

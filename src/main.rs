@@ -15,8 +15,8 @@ use futures_util::StreamExt;
 async fn main() -> ExitCode {
     let args = Cli::parse();
 
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(&args.log_level));
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&args.log_level));
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
@@ -85,7 +85,10 @@ async fn run_command(args: Cli) -> Result<()> {
             // Fallback directly to disk
             let store = ConfigStore::new(args.config_dir)?;
             store.set(&channel, &key, &value)?;
-            println!("Updated [{}] {} = {} (direct file write)", channel, key, value);
+            println!(
+                "Updated [{}] {} = {} (direct file write)",
+                channel, key, value
+            );
         }
         Commands::List { channel } => {
             let store = ConfigStore::new(args.config_dir)?;
@@ -98,9 +101,9 @@ async fn run_command(args: Cli) -> Result<()> {
             let conn = Connection::session()
                 .await
                 .context("Failed to connect to D-Bus session bus")?;
-            let client = ConfigClient::new(&conn)
-                .await
-                .context("Could not connect to org.conchy.Config D-Bus service. Is the daemon running?")?;
+            let client = ConfigClient::new(&conn).await.context(
+                "Could not connect to org.conchy.Config D-Bus service. Is the daemon running?",
+            )?;
 
             println!("Listening for live configuration changes via D-Bus...");
             let mut stream = client.receive_property_changed().await?;

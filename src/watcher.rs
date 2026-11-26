@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
-use notify::{Config as NotifyConfig, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{
+    Config as NotifyConfig, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use std::collections::HashMap;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
@@ -152,11 +154,19 @@ impl FileWatcher {
         );
 
         // Broadcast PropertyChanged signal for each modified property
-        if let Ok(object_server) = self.dbus_conn.object_server().interface::<_, ConfigServer>(DBUS_OBJECT_PATH).await {
+        if let Ok(object_server) = self
+            .dbus_conn
+            .object_server()
+            .interface::<_, ConfigServer>(DBUS_OBJECT_PATH)
+            .await
+        {
             let emitter = object_server.signal_emitter();
             for (k, v) in changed_keys {
-                info!("Broadcasting manual change via D-Bus: [{}] {} = {}", channel, k, v);
-                let _ = ConfigServer::property_changed(&emitter, channel, &k, &v).await;
+                info!(
+                    "Broadcasting manual change via D-Bus: [{}] {} = {}",
+                    channel, k, v
+                );
+                let _ = ConfigServer::property_changed(emitter, channel, &k, &v).await;
             }
         }
     }

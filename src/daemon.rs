@@ -29,11 +29,17 @@ impl Daemon {
             .await
             .context("Failed to build D-Bus connection")?;
 
-        info!("D-Bus service '{}' registered successfully at '{}'", DBUS_SERVICE_NAME, DBUS_OBJECT_PATH);
+        info!(
+            "D-Bus service '{}' registered successfully at '{}'",
+            DBUS_SERVICE_NAME, DBUS_OBJECT_PATH
+        );
 
         // Start file watcher for live manual edits
         let watcher = Arc::new(FileWatcher::new(store, connection.clone()));
-        watcher.start().await.context("Failed to start Inotify file watcher")?;
+        watcher
+            .start()
+            .await
+            .context("Failed to start Inotify file watcher")?;
 
         // Wait for shutdown signals
         let mut sigterm = signal(SignalKind::terminate()).context("Failed to hook SIGTERM")?;

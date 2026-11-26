@@ -273,17 +273,26 @@ mod tests {
         .unwrap();
         let c = parse_files_config(&doc).unwrap();
         assert!(c.show_hidden);
-        assert!(c.folders_first, "строка вместо bool — значение по умолчанию");
+        assert!(
+            c.folders_first,
+            "строка вместо bool — значение по умолчанию"
+        );
         assert_eq!(c.sort_by, SortBy::Size);
         assert!(!c.sort_ascending);
         assert_eq!(c.folder_size, FolderSize::None);
-        assert_eq!(c.width, 1100, "слишком маленькое окно — значение по умолчанию");
+        assert_eq!(
+            c.width, 1100,
+            "слишком маленькое окно — значение по умолчанию"
+        );
         assert_eq!(c.sidebar_width, 260);
         assert_eq!(c.terminal.as_deref(), Some("foot"));
         assert_eq!(c.icon_theme.as_deref(), Some("Papirus"));
         assert_eq!(c.font_size, 14.5);
         assert!(c.panel_visible);
-        assert_eq!(c.panel_height, 300, "слишком низкая панель — значение по умолчанию");
+        assert_eq!(
+            c.panel_height, 300,
+            "слишком низкая панель — значение по умолчанию"
+        );
         assert!(!c.cache_enabled);
         assert_eq!(c.cache_max_mb, 50);
         assert_eq!(c.cache_max_age_days, 7);
